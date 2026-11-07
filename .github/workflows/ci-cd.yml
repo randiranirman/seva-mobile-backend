@@ -32,6 +32,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           HOST_EMAIL: ${{ secrets.HOST_EMAIL }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_PORT: ${{secrets.SMTP_PORT }}
         run: ./mvnw clean verify
 
   # 2. Deploy to Render environment dynamically (Render builds from the repo itself;
