@@ -24,7 +24,7 @@ jobs:
       - name: Make Maven Wrapper Executable
         run: chmod +x mvnw
 
-      - name: Run Tests & Compile
+      - name: Run Tests &   Compile
         env:
           DB_CONNECTION: ${{ secrets.DB_CONNECTION }}
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
