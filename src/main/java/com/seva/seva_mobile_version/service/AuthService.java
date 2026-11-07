@@ -11,6 +11,7 @@ import com.seva.seva_mobile_version.entity.User;
 import com.seva.seva_mobile_version.enums.Role;
 import com.seva.seva_mobile_version.exception.EmailNotVerifiedException;
 import com.seva.seva_mobile_version.repository.RevokedTokenRepository;
+import com.seva.seva_mobile_version.repository.ServiceCenterRepository;
 import com.seva.seva_mobile_version.repository.UserRepository;
 import com.seva.seva_mobile_version.security.JwtService;
 import com.seva.seva_mobile_version.utils.EmailService;
@@ -31,6 +32,7 @@ public class AuthService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
+    private final ServiceCenterRepository serviceCenterRepository;
     private final RevokedTokenRepository revokedTokenRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -39,12 +41,14 @@ public class AuthService {
 
     public AuthService(
             UserRepository userRepository,
+            ServiceCenterRepository serviceCenterRepository,
             RevokedTokenRepository revokedTokenRepository,
             BCryptPasswordEncoder passwordEncoder,
             JwtService jwtService,
             EmailService emailService,
             @Value("${verification.code-expiration-ms}") long verificationCodeExpirationMs) {
         this.userRepository = userRepository;
+        this.serviceCenterRepository = serviceCenterRepository;
         this.revokedTokenRepository = revokedTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -174,9 +178,11 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    private AuthResponse buildAuthResponse(User user) {
-        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail(), user.getRole().name());
+    public AuthResponse buildAuthResponse(User user) {
+        boolean isOwner = serviceCenterRepository.existsByOwnerId(user.getId());
+
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getId(), user.getRole().name(), isOwner);
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail(), user.getId(), user.getRole().name(), isOwner);
 
         return new AuthResponse(accessToken, refreshToken, "Bearer");
     }

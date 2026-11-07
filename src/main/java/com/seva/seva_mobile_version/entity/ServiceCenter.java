@@ -49,7 +49,16 @@ public class ServiceCenter {
     private String ownerContactNumber ;
 
 
+    @Column( name = "business_registration_number" , nullable = false, unique = true)
+    private String businessRegistrationNumber ;
 
+
+    @Column( name = "latitude" , nullable = false)
+    private Double latitude ;
+
+
+    @Column( name = "longitude" , nullable = false)
+    private Double longitude ;
 
 
 

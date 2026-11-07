@@ -22,6 +22,8 @@ public class JwtService {
 
     private static final String TOKEN_TYPE_CLAIM = "type";
     private static final String ROLE_CLAIM = "role";
+    private static final String IS_OWNER_CLAIM = "isOwner";
+    private static final String USER_ID_CLAIM = "userId";
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
 
@@ -46,18 +48,21 @@ public class JwtService {
         return refreshTokenExpirationMs;
     }
 
-    public String generateAccessToken(String subjectEmail, String role) {
-        return buildToken(subjectEmail, role, ACCESS_TOKEN_TYPE, accessTokenExpirationMs);
+    public String generateAccessToken(String subjectEmail, String userId, String role, boolean isOwner) {
+        return buildToken(subjectEmail, userId, role, isOwner, ACCESS_TOKEN_TYPE, accessTokenExpirationMs);
     }
 
-    public String generateRefreshToken(String subjectEmail, String role) {
-        return buildToken(subjectEmail, role, REFRESH_TOKEN_TYPE, refreshTokenExpirationMs);
+    public String generateRefreshToken(String subjectEmail, String userId, String role, boolean isOwner) {
+        return buildToken(subjectEmail, userId, role, isOwner, REFRESH_TOKEN_TYPE, refreshTokenExpirationMs);
     }
 
-    private String buildToken(String subjectEmail, String role, String tokenType, long expirationMs) {
+    private String buildToken(
+            String subjectEmail, String userId, String role, boolean isOwner, String tokenType, long expirationMs) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(TOKEN_TYPE_CLAIM, tokenType);
+        claims.put(USER_ID_CLAIM, userId);
         claims.put(ROLE_CLAIM, role);
+        claims.put(IS_OWNER_CLAIM, isOwner);
 
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
@@ -82,6 +87,14 @@ public class JwtService {
 
     public String extractRole(String token) {
         return extractClaim(token, claims -> claims.get(ROLE_CLAIM, String.class));
+    }
+
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get(USER_ID_CLAIM, String.class));
+    }
+
+    public boolean extractIsOwner(String token) {
+        return Boolean.TRUE.equals(extractClaim(token, claims -> claims.get(IS_OWNER_CLAIM, Boolean.class)));
     }
 
     public LocalDateTime extractExpirationAsLocalDateTime(String token) {
