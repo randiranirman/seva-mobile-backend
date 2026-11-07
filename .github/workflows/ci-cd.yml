@@ -1,0 +1,45 @@
+name: Spring Boot CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  # 1. Build and Test the application
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make Maven Wrapper Executable
+        run: chmod +x mvnw
+
+      - name: Run Tests & Compile
+        run: ./mvnw clean verify
+
+  # 2. Deploy to Render environment dynamically (Render builds from the repo itself;
+  # this just tells it to pull and redeploy, only on pushes to main/develop)
+  deploy-to-render:
+    needs: build-and-test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Deploying to Dev..."
+            curl -X POST "${{ secrets.RENDER_PROD_DEPLOY_HOOK }}"
+          else
+            echo "Deploying to Development..."
+            curl -X POST "${{ secrets.RENDER_DEV_DEPLOY_HOOK }}"
+          fi
