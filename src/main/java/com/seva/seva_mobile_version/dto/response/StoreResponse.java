@@ -9,6 +9,9 @@ public record StoreResponse(
         String area,
         String ownerName,
         String ownerContactNumber,
+        String businessRegistrationNumber,
+        Double latitude,
+        Double longitude,
         String ownerId,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
